@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible">
+
+    <title>
+        Text Recognition wtih Tesseract
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+        crossorigin="anonymous">
+    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@700&display=swap"
+        rel="stylesheet">
+    
+    <style media="screen">
+        #custom-file-button {
+            padding: 10px;
+            color: black;
+            background-color: #ffffff;
+            border: 1px solid #000;
+            border-radius: 5px;
+            margin-left: 40%;
+        }
+
+        #custom-file-button:hover {
+            background-color: #fbffff;
+        }
+
+        #custom-text {
+            margin-left: 10px;
+            font-family: sans-serif;
+            color: rgb(39, 39, 39);
+        }
+
+        #jumbotron {
+            height: 120px;
+            margin-bottom: 40px;
+            text-align: center;
+            padding-top: 40px;
+            font-family: 'Kumbh Sans', sans-serif;
+            background-color: #ffffff;
+            border-bottom: 1px solid rgb(226, 225, 225);
+        }
+        
+        #background {
+            background: linear-gradient(to bottom, #fff7dd, #ffffff);
+        }
+
+        #output {
+            margin-top: 40px;
+            width: 400px;
+            height: auto;
+            float: left;
+        }
+
+        #text {
+            font-family: "Kumbh Sans", sans-serif;
+            word-wrap: break-word;
+            width: 400px;
+            float: left;
+            margin-top: 40px;
+            margin-left: 60px;
+        }
+
+        #output-container {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        #container {
+            margin-top: 60px;
+        }
+    </style>
+    
+</head>
+
+<body>
+    <script src="https://unpkg.com/tesseract.js@2.0.2/dist/tesseract.min.js"></script>
+
+    <script>
+        async function work() {
+            const image = getImageFromInput();
+
+            if (image) {
+                const textElem = document.getElementById("text");
+
+                const worker = Tesseract.createWorker({
+                    logger: (m) => {
+                        console.log(m);
+                    }
+                });
+
+                Tesseract.setLogging(true);
+                await worker.load();
+                await worker.loadLanguage("eng");
+                await worker.initialize("eng");
+
+                await worker.recognize(image).then(
+                    result => {
+                        textElem.innerHTML = result.data['text']
+                    }
+                );
+
+                await worker.terminate();
+            } else {
+                console.log("No image uploaded.")
+            }
+        }
+
+
+        function getImageFromInput() {
+            const fileInput = document.getElementById("file-input");
+
+            let image = null;
+
+            if (fileInput.files) {
+                image = fileInput.files[0];
+            }
+
+            return image;
+        }
+    </script>
+
+    <div id="background">
+        <div id="jumbotron">
+        
+            <h1 style="color:black">
+                Text Recognition
+            </h1>
+        
+        </div>
+
+        <div class="container" id="container">
+            <input id="file-input" type="file" multiple hidden accept="image/jpeg, image/jpg, image/png" />
+
+            <button id="custom-file-button" type="button">Choose a file</button>
+            <span id="custom-text">No file chosen yet.</span>
+
+
+            <br>
+
+            <div id="output-container">
+                <img id="output">
+                <p id="text"></p>
+            </div>
+
+            <button id="custom-submit-button" type="submit" onclick="work();" hidden>Submit</button>
+
+            <script>
+
+                const fileBtn = document.getElementById("file-input");
+                const customFileBtn = document.getElementById("custom-file-button");
+                const customText = document.getElementById("custom-text");
+
+                const submitBtn = document.getElementById("custom-submit-button");
+
+                const imageElem = document.getElementById("output");
+
+                customFileBtn.addEventListener(
+                    "click",
+                    function() {
+                        fileBtn.click();
+                    }
+                );
+
+
+                fileBtn.addEventListener(
+                    "change",
+                    function(event) {
+                        if (fileBtn.value) {
+                            customText.innerHTML = fileBtn.value.match(/[\/\\]([\w\d\s\.\-\(\)]+)$/)[1];
+                            submitBtn.click();
+
+                            imageElem.src = URL.createObjectURL(event.target.files[0]);
+                        } else {
+                            customText.innerHTML = "No file chosen yet.";
+                        }
+                    }
+                );
+
+            </script>
+        </div>
+    </div>
+</body>
+
+</html>
